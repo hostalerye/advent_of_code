@@ -1,7 +1,7 @@
 defmodule PaperRolls do
   def compute do
     parse_input_file()
-    |> find_accessible_rolls(nil, 0)
+    |> find_accessible_rolls()
   end
 
   def parse_input_file() do
@@ -24,24 +24,63 @@ defmodule PaperRolls do
     end)
   end
 
-  def find_accessible_rolls([], _, accessible_rolls_count), do: accessible_rolls_count
+  def find_accessible_rolls(lines) do
+    case find_accessible_rolls(lines, nil, []) do
+      {0, new_lines} ->
+        new_lines
+        |> Enum.each(fn line ->
+          1..140
+          |> Enum.map(fn x ->
+            Map.get(line, x, ".")
+          end)
+          |> Enum.join()
+          |> IO.inspect()
+        end)
 
-  def find_accessible_rolls([line | next_lines], previous_line, accessible_rolls_count) do
+        0
+
+      {x_count, updated_lines} ->
+        x_count + find_accessible_rolls(updated_lines)
+    end
+  end
+
+  def find_accessible_rolls([], _, updated_lines) do
+    new_lines =
+      updated_lines
+      |> Enum.reverse()
+      |> Enum.map(&Map.new/1)
+
+    x_count =
+      new_lines
+      |> Enum.map(&Enum.count(&1, fn {_, x} -> x == "x" end))
+      |> Enum.sum()
+
+    {x_count,
+     new_lines |> Enum.map(&Enum.filter(&1, fn {_, x} -> x != "x" end)) |> Enum.map(&Map.new/1)}
+  end
+
+  def find_accessible_rolls([line | next_lines], previous_line, updated_lines) do
     find_accessible_rolls(
       next_lines,
       line,
-      accessible_rolls_count + count_accessible_rolls(line, List.first(next_lines), previous_line)
+      [
+        mark_accessible_rolls(
+          line,
+          List.first(next_lines),
+          previous_line
+        )
+        | updated_lines
+      ]
     )
   end
 
-  def count_accessible_rolls(line, next_line, previous_line) do
-    IO.inspect(line)
-
-    line
-    |> Map.keys()
-    |> Enum.map(&count_adjacent_rolls(&1, line, next_line, previous_line))
-    |> Enum.filter(&(&1 < 4))
-    |> Enum.count()
+  def mark_accessible_rolls(line, next_line, previous_line) do
+    Enum.map(line, fn {index, _} ->
+      case count_adjacent_rolls(index, line, next_line, previous_line) do
+        x when x < 4 -> {index, "x"}
+        _ -> {index, 1}
+      end
+    end)
   end
 
   def count_adjacent_rolls(index, line, nil, previous_line) do
@@ -72,4 +111,4 @@ defmodule PaperRolls do
   end
 end
 
-IO.puts("Accessible rolls of paper: #{PaperRolls.compute()}")
+IO.puts("Accessible rolls of paper: #{inspect(PaperRolls.compute())}")
