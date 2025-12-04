@@ -25,18 +25,9 @@ defmodule PaperRolls do
   end
 
   def find_accessible_rolls(lines) do
-    case find_accessible_rolls(lines, nil, []) do
-      {0, new_lines} ->
-        new_lines
-        |> Enum.each(fn line ->
-          1..140
-          |> Enum.map(fn x ->
-            Map.get(line, x, ".")
-          end)
-          |> Enum.join()
-          |> IO.inspect()
-        end)
-
+    case find_accessible_rolls_iteration(lines, nil, {0, []}) do
+      {0, updated_lines} ->
+        display_lines(updated_lines)
         0
 
       {x_count, updated_lines} ->
@@ -44,42 +35,51 @@ defmodule PaperRolls do
     end
   end
 
-  def find_accessible_rolls([], _, updated_lines) do
-    new_lines =
-      updated_lines
-      |> Enum.reverse()
-      |> Enum.map(&Map.new/1)
-
-    x_count =
-      new_lines
-      |> Enum.map(&Enum.count(&1, fn {_, x} -> x == "x" end))
-      |> Enum.sum()
-
-    {x_count,
-     new_lines |> Enum.map(&Enum.filter(&1, fn {_, x} -> x != "x" end)) |> Enum.map(&Map.new/1)}
+  def display_lines(lines) do
+    lines
+    |> Enum.each(fn line ->
+      0..139
+      |> Enum.map(fn x ->
+        Map.get(line, x, ".")
+      end)
+      |> Enum.join()
+      |> IO.inspect()
+    end)
   end
 
-  def find_accessible_rolls([line | next_lines], previous_line, updated_lines) do
-    find_accessible_rolls(
+  def find_accessible_rolls_iteration([], _, {x_count, updated_lines}) do
+    {x_count, updated_lines |> Enum.reverse()}
+  end
+
+  def find_accessible_rolls_iteration(
+        [line | next_lines],
+        previous_line,
+        {x_count, updated_lines}
+      ) do
+    {x_count_line, updated_line} =
+      mark_accessible_rolls(
+        line,
+        List.first(next_lines),
+        previous_line
+      )
+
+    find_accessible_rolls_iteration(
       next_lines,
       line,
-      [
-        mark_accessible_rolls(
-          line,
-          List.first(next_lines),
-          previous_line
-        )
-        | updated_lines
-      ]
+      {x_count + x_count_line, [updated_line | updated_lines]}
     )
   end
 
   def mark_accessible_rolls(line, next_line, previous_line) do
-    Enum.map(line, fn {index, _} ->
-      case count_adjacent_rolls(index, line, next_line, previous_line) do
-        x when x < 4 -> {index, "x"}
-        _ -> {index, 1}
-      end
+    Enum.reduce(line, {0, %{}}, fn
+      {index, 1}, {x_count, updated_line} ->
+        case count_adjacent_rolls(index, line, next_line, previous_line) do
+          x when x < 4 -> {x_count + 1, Map.put(updated_line, index, 0)}
+          _ -> {x_count, Map.put(updated_line, index, 1)}
+        end
+
+      {index, 0}, {x_count, updated_line} ->
+        {x_count, Map.put(updated_line, index, 0)}
     end)
   end
 
