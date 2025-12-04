@@ -42,6 +42,11 @@ defmodule PaperRolls do
       |> Enum.map(fn x ->
         Map.get(line, x, ".")
       end)
+      |> Enum.map(fn
+        0 -> "."
+        1 -> "@"
+        "." -> "."
+      end)
       |> Enum.join()
       |> IO.inspect()
     end)
