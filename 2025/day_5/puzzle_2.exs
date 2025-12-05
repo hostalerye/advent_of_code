@@ -1,6 +1,10 @@
 defmodule InventoryManagement do
   def compute do
     parse_input_file()
+    |> merge_ranges([])
+    |> Enum.reduce(0, fn {from, to}, count ->
+      count + (to - from + 1)
+    end)
   end
 
   def parse_input_file do
@@ -16,10 +20,6 @@ defmodule InventoryManagement do
       end
     end)
     |> List.keysort(0)
-    |> merge_ranges([])
-    |> Enum.reduce(0, fn {from, to}, count ->
-      count + (to - from + 1)
-    end)
   end
 
   def merge_ranges([], merged_ranges), do: merged_ranges
