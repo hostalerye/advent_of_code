@@ -30,15 +30,18 @@ defmodule Laboratories do
               {Map.put(current_line, k, "|"), new_tachyons}
 
             "^" ->
-              case {Map.get(current_line, k + 1), Map.get(current_line, k - 1)} do
+              case {Map.get(current_line, k - 1), Map.get(current_line, k + 1)} do
                 {".", "."} ->
                   {current_line |> Map.put(k + 1, "|") |> Map.put(k - 1, "|"), new_tachyons + 1}
 
-                {_, "|"} ->
+                {"|", "."} ->
                   {Map.put(current_line, k + 1, "|"), new_tachyons + 1}
 
-                {"|", _} ->
+                {".", "|"} ->
                   {Map.put(current_line, k - 1, "|"), new_tachyons + 1}
+
+                {"|", "|"} ->
+                  {current_line, new_tachyons + 1}
               end
 
             _ ->
