@@ -22,10 +22,10 @@ defmodule MovieTheater do
 
   defp combinations([]), do: []
 
-  defp combinaisons([h | t]) do
+  defp combinations([h | t]) do
     Enum.map(t, fn point ->
       [h, point]
-    end) ++ combinaisons(t)
+    end) ++ combinations(t)
   end
 
   defp draw_lines(points), do: draw_lines_rec(points, [[List.last(points), List.first(points)]])
@@ -43,7 +43,7 @@ defmodule MovieTheater do
       end)
       |> Enum.sort_by(fn [_, _, area] -> area end, :desc)
 
-    Enum.find(combinaisons_by_area, fn [{x1, y1}, {x2, y2}, area] ->
+    Enum.find(combinaisons_by_area, fn [{x1, y1}, {x2, y2}, _area] ->
       min_x = min(x1, x2)
       min_y = min(y1, y2)
       max_x = max(x1, x2)
@@ -85,14 +85,14 @@ defmodule MovieTheater do
 
   defp is_valid_line?([{line_x1, line_y1}, {line_x2, line_y2}], lines, points_set)
        when line_x1 == line_x2 do
-    Enum.all?((min(line_y1, line_y2) + 1)..(max(line_y1, line_y2) - 1)//1, fn y ->
+    Enum.all?((min(line_y1, line_y2) + 1)..(max(line_y1, line_y2) - 1)//100, fn y ->
       is_valid_point?({line_x1, y}, lines, points_set)
     end)
   end
 
   defp is_valid_line?([{line_x1, line_y1}, {line_x2, line_y2}], lines, points_set)
        when line_y1 == line_y2 do
-    Enum.all?((min(line_x1, line_x2) + 1)..(max(line_x1, line_x2) - 1)//1, fn x ->
+    Enum.all?((min(line_x1, line_x2) + 1)..(max(line_x1, line_x2) - 1)//100, fn x ->
       is_valid_point?({x, line_y1}, lines, points_set)
     end)
   end
