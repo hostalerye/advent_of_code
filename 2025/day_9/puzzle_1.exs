@@ -36,7 +36,7 @@ defmodule MovieTheater do
   end
 
   defp area(point_1, point_2) do
-    abs(point_1.x - point_2.x + 1) * abs(point_1.y - point_2.y + 1)
+    (abs(point_1.x - point_2.x) + 1) * (abs(point_1.y - point_2.y) + 1)
   end
 end
 
